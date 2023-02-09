@@ -36,10 +36,11 @@ def load_existing_devices(db, devices_table_name):
 
 class Device:
     
-    def __init__(self,device_Id,device_Ip,device_Key='12345678'):
+    def __init__(self,device_Id,device_Ip,tablename,device_Key='12345678',):
         self.device_Id=device_Id
         self.device_Ip=device_Ip
         self.device_Key=device_Key
+        self.tablename = tablename
         self.device = None
         
     def initialize_device_connection(self):
@@ -51,14 +52,25 @@ class Device:
             return None
     
     def data_logging(self, db):
-        cursor = db.cursor()
-        cmd = "INSERT INTO powerMeasurement1(power) VALUES (%s)"
-        data = self.device.status()
-        val = (int(data['dps']['5']),)
-        cursor.execute(cmd,val)
-        cursor.close()
-        db.commit()
-        
+        try:
+            data = self.device.status()
+        except TimeoutError:
+            return
+        except ConnectionResetError : 
+            return
+        except ConnectionAbortedError: 
+            return 
+        except TypeError:
+            return
+        else:
+            cursor = db.cursor()
+            cmd = f"INSERT INTO {self.tablename}(power) VALUES (%s)"
+            
+            val = (int(data['dps']['5']),)
+            cursor.execute(cmd,val)
+            cursor.close()
+            db.commit()
+            print("Write Complete.")
         
 
 
