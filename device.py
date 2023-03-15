@@ -40,14 +40,24 @@ class Device:
             power_measured = data['dps']['5']
         elif self.device_version == '3.3':
             power_measured = data['dps']['19 ]']
-        if current_status and self.device_status :
+
+        if current_status == True and self.device_status ==False:
             self.avg_power += power_measured
-            self.avg_power /=2
-        elif current_status == True and self.device_status ==False:
-            self.avg_power += power_measured
-            self.avg_power /=2
             self.device_status = True
             self.start_time = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
+            # create a new row in database
+        elif current_status and self.device_status :
+            self.avg_power += power_measured
+            self.avg_power /=2
+            self.end_time =  datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
+            day_change = False
+            if self.end_time.strftime("%d") != self.start_time.strftime("%d"):
+                day_change=True
+            duration = self.end_time - self.start_time
+            duration_in_s = duration.total_seconds()
+            hours = duration_in_s/3600
+            hours = round(hours,4)
+            #find energy consumption and update the row 
         elif current_status == False and self.device_status ==True:
             self.device_status = False
             self.end_time =  datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
@@ -58,11 +68,38 @@ class Device:
             duration_in_s = duration.total_seconds()
             hours = duration_in_s/3600
             hours = round(hours,4)
-            #write in database the avg power
+            # update the same row for last time
             self.avg_power = 0
+
         else:
             self.device_status = False
             self.avg_power = 0
+
+
+        
+        # if current_status and self.device_status :
+        #     self.avg_power += power_measured
+        #     self.avg_power /=2
+        # elif current_status == True and self.device_status ==False:
+        #     self.avg_power += power_measured
+        #     self.avg_power /=2
+        #     self.device_status = True
+        #     self.start_time = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
+        # elif current_status == False and self.device_status ==True:
+        #     self.device_status = False
+        #     self.end_time =  datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
+        #     day_change = False
+        #     if self.end_time.strftime("%d") != self.start_time.strftime("%d"):
+        #         day_change=True
+        #     duration = self.end_time - self.start_time
+        #     duration_in_s = duration.total_seconds()
+        #     hours = duration_in_s/3600
+        #     hours = round(hours,4)
+        #     #write in database the avg power
+        #     self.avg_power = 0
+        # else:
+        #     self.device_status = False
+        #     self.avg_power = 0
 
     
         
